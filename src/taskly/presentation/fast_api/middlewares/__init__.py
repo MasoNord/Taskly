@@ -15,6 +15,7 @@ def include_middlewares(app: FastAPI, cors_config: CorsConfig) -> None:
         allow_methods=cors_config.allow_methods,
         allow_headers=cors_config.allow_headers,
     )
+    app.add_middleware()
 
 __all__ = [
     "include_middlewares"
