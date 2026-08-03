@@ -1,6 +1,12 @@
+import structlog
+from dishka import FromDishka
+from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
+logger = structlog.get_logger(__name__)
 
 def create_alive_router() -> APIRouter:
     router = APIRouter()
@@ -11,3 +17,24 @@ def create_alive_router() -> APIRouter:
 
 
     return router
+
+def create_ready_router() -> APIRouter:
+
+    router = APIRouter()
+
+    @router.get("/internal/ready")
+    @inject
+    async def ready(
+        session: FromDishka[AsyncSession],
+    ) -> JSONResponse:
+        """HTTP endpoint for readiness probe."""
+        try:
+            await session.execute(text("SELECT 1"))
+        except Exception as e:  # noqa: BLE001
+            await logger.awarning("Database is not ready", exc_info=e)
+            return JSONResponse(status_code=503, content={})
+
+        return JSONResponse(status_code=200, content={})
+
+    return router
+

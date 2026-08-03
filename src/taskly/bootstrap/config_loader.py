@@ -5,6 +5,7 @@ from typing import Self, Any
 
 import toml_rs
 
+from taskly.bootstrap.configs.database_config import EngineSettings, LocalDBConnectionConfig
 from taskly.bootstrap.configs.server_config import ServerConfig, ApiConfig, CorsConfig
 from taskly_common.observability.config import OTelConfig
 
@@ -17,6 +18,8 @@ class Config:
     api: ApiConfig
     cors: CorsConfig
     otel: OTelConfig
+    engine_settings: EngineSettings
+    postgres: LocalDBConnectionConfig
 
     @classmethod
     def load(cls) -> Self:
@@ -34,4 +37,6 @@ class Config:
             api=ApiConfig(**data["api"]),
             cors=CorsConfig(**data["cors"]),
             otel=OTelConfig(**data["otel"]),
+            engine_settings=EngineSettings(**data["engine_settings"]),
+            postgres=LocalDBConnectionConfig(**data["postgres"]),
         )
