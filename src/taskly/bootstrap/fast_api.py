@@ -49,17 +49,29 @@ def create_app(config: Config) -> FastAPI:
 def app_factory() -> FastAPI:
     return create_app(Config.load())
 
-def run_api() -> None:
+def run_api(reload: bool = False) -> None:
 
     config = Config.load()
-    uvicorn.run(
-        "taskly.bootstrap.fast_api:app_factory",
-        factory=True,
-        port=config.server.port,
-        host=config.server.host,
-        workers=config.server.workers,
-        log_config=log_config,
-    )
+
+    if reload:
+        uvicorn.run(
+            "taskly.bootstrap.fast_api:app_factory",
+            factory=True,
+            port=config.server.port,
+            host=config.server.host,
+            workers=config.server.workers,
+            log_config=log_config,
+            reload=True
+        )
+    else:
+        uvicorn.run(
+            "taskly.bootstrap.fast_api:app_factory",
+            factory=True,
+            port=config.server.port,
+            host=config.server.host,
+            workers=config.server.workers,
+            log_config=log_config,
+        )
 
 if __name__ == "__main__":
     run_api()
