@@ -11,3 +11,11 @@ allow_origins = ["http://localhost:3001"]
 allow_credentials=true
 allow_methods=["*"]
 allow_headers=["*"]
+
+[otel]
+endpoint = "http://otel-collector:4318"
+service_name = "taskly"
+sample_ratio = 0.1
+metric_export_interval_ms = 10000
+instrument_sqlalchemy = true
+enabled = true

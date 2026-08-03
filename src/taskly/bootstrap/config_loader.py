@@ -1,4 +1,3 @@
-import inspect
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -7,6 +6,7 @@ from typing import Self, Any
 import toml_rs
 
 from taskly.bootstrap.configs.server_config import ServerConfig, ApiConfig, CorsConfig
+from taskly_common.observability.config import OTelConfig
 
 _CONFIG_PATH_ENV = "APP_CONFIG_PATH"
 
@@ -16,6 +16,7 @@ class Config:
     server: ServerConfig
     api: ApiConfig
     cors: CorsConfig
+    otel: OTelConfig
 
     @classmethod
     def load(cls) -> Self:
@@ -32,4 +33,5 @@ class Config:
             server=ServerConfig(**data["server"]),
             api=ApiConfig(**data["api"]),
             cors=CorsConfig(**data["cors"]),
+            otel=OTelConfig(**data["otel"]),
         )
