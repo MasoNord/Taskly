@@ -2,7 +2,7 @@ import structlog
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-logger = structlog.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 class CSPMiddleware:
     def __init__(self, app: ASGIApp) -> None:

@@ -16,10 +16,10 @@ from taskly.presentation.auth.constants import (
 
 from taskly.presentation.auth.cookie_params import CookieParams
 
-logger = structlog.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 skip_paths = [
-    "/openapi.json", "/health",
+    "/openapi.json", "/health", "/alive"
 ]
 
 class SessionMiddleware:
