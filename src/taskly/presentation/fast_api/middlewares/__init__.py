@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from taskly.bootstrap.configs.server_config import CorsConfig
+from taskly.presentation.fast_api.middlewares.csp import CSPMiddleware
+from taskly.presentation.fast_api.middlewares.session import SessionMiddleware
 from taskly.presentation.fast_api.middlewares.tracing import tracing_middleware
 
 
@@ -15,7 +17,9 @@ def include_middlewares(app: FastAPI, cors_config: CorsConfig) -> None:
         allow_methods=cors_config.allow_methods,
         allow_headers=cors_config.allow_headers,
     )
-    app.add_middleware()
+    app.add_middleware(SessionMiddleware)
+    app.add_middleware(CSPMiddleware)
+
 
 __all__ = [
     "include_middlewares"

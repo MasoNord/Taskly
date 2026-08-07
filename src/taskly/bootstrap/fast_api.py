@@ -10,6 +10,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 from taskly.bootstrap.config_loader import Config
 from taskly.bootstrap.di.container import get_async_container
+from taskly.presentation.fast_api.exceptions import include_exception_handlers
 from taskly.presentation.fast_api.middlewares import include_middlewares
 from taskly.presentation.fast_api.routers import include_routers_api_v1
 from taskly_common.logs import configure_structlog
@@ -42,6 +43,7 @@ def create_app(config: Config) -> FastAPI:
     setup_dishka(container=container, app=app)
 
     include_routers_api_v1(app)
+    include_exception_handlers(app)
     include_middlewares(app, cors_config=config.cors)
 
     return app

@@ -6,6 +6,9 @@ class ServerConfig:
     host: str
     port: int
     workers: int
+    hash_secrete: str
+    client_domain: str
+    email_verification_code_url: str
 
 @dataclass(slots=True, frozen=True, kw_only=True)
 class CorsConfig:

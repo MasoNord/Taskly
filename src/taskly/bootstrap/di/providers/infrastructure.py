@@ -1,10 +1,16 @@
 from typing import AsyncIterator
 
+import redis
 import structlog
-from dishka import Provider, provide, Scope
+from dishka import Provider, provide, Scope, provide_all
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, AsyncSession, create_async_engine
 
 from taskly.bootstrap.configs.database_config import LocalDBConnectionConfig, EngineSettings
+from taskly.bootstrap.configs.redis_config import RedisConfig
+import redis.asyncio as aioredis
+
+from taskly.infrastructure.auth.handlers.sign_up_via_email import GetEmailVerificationCodeUrl
+from taskly.infrastructure.exceptions.redis import RedisConnectionError
 
 logger = structlog.get_logger(__name__)
 
@@ -56,7 +62,54 @@ class LocalDatabaseProvider(Provider):
             logger.debug("Closing Main async session.")
         logger.debug("Main async session closed.")
 
+
+class LocalRedisProvider(Provider):
+    @provide(scope=Scope.APP)
+    async def provide_async_redis_pool(self, redis_config: RedisConfig) -> AsyncIterator[aioredis.ConnectionPool]:
+
+        pool = aioredis.ConnectionPool.from_url(
+            redis_config.redis_conn_url,
+            max_connections=redis_config.max_connections,
+            decode_responses=redis_config.decode_response,
+        )
+
+        logger.debug("Local async redis pool started...")
+        yield pool
+        logger.debug("Local async redis pool closing...")
+        await pool.disconnect()
+        logger.debug("Local async redis pool is closed!")
+
+    @provide(scope=Scope.REQUEST)
+    async def provide_async_redis_connection(self, local_redis_pool: aioredis.ConnectionPool) -> AsyncIterator[aioredis.Connection]:
+        logger.debug("Starting Local redis connection...")
+        redis_client = aioredis.Redis(connection_pool=local_redis_pool)
+
+        try:
+            await redis_client.ping()
+        except redis.exceptions.ConnectionError as err:
+            logger.exception("Redis startup check failed: %s", err)
+            raise RedisConnectionError from err
+
+        yield redis_client
+        logger.debug("Closing local redis connection...")
+        await redis_client.close()
+        logger.debug("Local redis connection is closed...")
+
+
+class AuthProvider(Provider):
+    pass
+
+class AuthHandlersProvider(Provider):
+    scope = Scope.REQUEST
+
+    handlers = provide_all(
+        GetEmailVerificationCodeUrl
+    )
+
+
 def infrastructure_providers() -> tuple[Provider, ...]:
     return (
         LocalDatabaseProvider(),
+        AuthProvider(),
+        AuthHandlersProvider()
     )
