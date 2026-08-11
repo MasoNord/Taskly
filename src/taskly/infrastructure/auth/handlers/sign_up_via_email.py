@@ -2,8 +2,8 @@ from logging import Logger
 
 import structlog
 
-from taskly.application.common.gateway.email_verification_code_storage import EmailVerificationCodeStorage, \
-    EmailVerificationCodeRequest
+from taskly.application.common.gateway.email_sender import EmailSenderGateway, EmailVerificationCodeTemplate
+from taskly.application.common.gateway.email_verification_code_storage import EmailVerificationCodeStorage, EmailVerificationCodeRequest
 from taskly.application.common.service.email_verification_code_generator import EmailVerificationCodeGenerator
 from taskly.application.common.service.email_verification_code_url_generator import EmailVerificationCodeUrlGenerator
 from taskly_common.hasher import sign
@@ -17,6 +17,7 @@ class GetEmailVerificationCodeUrl:
     _email_verification_code_generator: EmailVerificationCodeGenerator
     _email_verification_code_url_generator: EmailVerificationCodeUrlGenerator
     _email_verification_code_storage: EmailVerificationCodeStorage
+    _email_sender_gateway: EmailSenderGateway
 
     async def execute(self, email: str) -> str:
         logger.info("Generating verification code url for email: %s", email)
@@ -36,7 +37,18 @@ class GetEmailVerificationCodeUrl:
         )
 
         # TODO: add sending notification to the user by the given email via event bus
-        # As a temporarily solution just printing code to the console
+
+        email_request = EmailVerificationCodeTemplate(
+            context = {"verification_code": code}
+        )
+
+        await self._email_sender_gateway.send(
+            email,
+            email_request.subject,
+            email_request.template_name,
+            dict(email_request.context)
+        )
+
         logger.info("SENDING USE'S VERIFICATION CODE TO THE CONSOLE: %s", code)
 
         await self._email_verification_code_storage.add(email_verification_code_request)

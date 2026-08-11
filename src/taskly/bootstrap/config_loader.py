@@ -6,6 +6,7 @@ from typing import Self, Any
 import toml_rs
 
 from taskly.bootstrap.configs.database_config import EngineSettings, LocalDBConnectionConfig
+from taskly.bootstrap.configs.email_config import EmailConnectionConfig, EmailTemplateRendererConfig
 from taskly.bootstrap.configs.redis_config import RedisConfig
 from taskly.bootstrap.configs.server_config import ServerConfig, ApiConfig, CorsConfig
 from taskly_common.observability.config import OTelConfig
@@ -22,6 +23,8 @@ class Config:
     redis_config: RedisConfig
     engine_settings: EngineSettings
     postgres: LocalDBConnectionConfig
+    email_connection: EmailConnectionConfig
+    email_template_render: EmailTemplateRendererConfig
 
     @classmethod
     def load(cls) -> Self:
@@ -42,4 +45,6 @@ class Config:
             engine_settings=EngineSettings(**data["engine_settings"]),
             postgres=LocalDBConnectionConfig(**data["postgres"]),
             redis_config=RedisConfig(**data["redis_config"]),
+            email_connection=EmailConnectionConfig(**data["email_connection"]),
+            email_template_render=EmailTemplateRendererConfig(**data["email_template_render"]),
         )

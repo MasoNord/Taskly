@@ -3,13 +3,18 @@ from typing import AsyncIterator
 import redis
 import structlog
 from dishka import Provider, provide, Scope, provide_all
+from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, AsyncSession, create_async_engine
 
+from taskly.application.common.gateway.email_sender import EmailSenderGateway
 from taskly.bootstrap.configs.database_config import LocalDBConnectionConfig, EngineSettings
+from taskly.bootstrap.configs.email_config import EmailTemplateRendererConfig
 from taskly.bootstrap.configs.redis_config import RedisConfig
 import redis.asyncio as aioredis
 
 from taskly.infrastructure.auth.handlers.sign_up_via_email import GetEmailVerificationCodeUrl
+from taskly.infrastructure.email.gateway.email_sender_smtp import SmtpEmailSenderGateway
+from taskly.infrastructure.email.template_renderer import TemplateRenderer
 from taskly.infrastructure.exceptions.redis import RedisConnectionError
 
 logger = structlog.get_logger(__name__)
@@ -95,6 +100,17 @@ class LocalRedisProvider(Provider):
         await redis_client.close()
         logger.debug("Local redis connection is closed...")
 
+class SmtpEmailSenderProvider(Provider):
+    scope = Scope.REQUEST
+
+    @provide(scope=Scope.REQUEST)
+    def provide_renderer_environment(self, config: EmailTemplateRendererConfig) -> Environment:
+        return Environment(loader=FileSystemLoader(config.template_path_folder))
+
+    template_renderer = provide(TemplateRenderer)
+
+    smtp_email_sender_gateway = provide(SmtpEmailSenderGateway, provides=EmailSenderGateway)
+
 
 class AuthProvider(Provider):
     pass
@@ -111,5 +127,6 @@ def infrastructure_providers() -> tuple[Provider, ...]:
     return (
         LocalDatabaseProvider(),
         AuthProvider(),
-        AuthHandlersProvider()
+        AuthHandlersProvider(),
+        SmtpEmailSenderProvider()
     )
