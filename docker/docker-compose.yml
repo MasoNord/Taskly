@@ -1,0 +1,31 @@
+name: taskly-containers
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector
+    volumes:
+      - ../.config/otel-collector-config.yaml:/etc/otelcol/config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP http receiver
+      - "55679:55679" # zpages extension
+  mailpit:
+    image: axllent/mailpit
+    container_name: mailpit
+    restart: unless-stopped
+    volumes:
+      - mailtip-data:/data/mailtip
+      - ../.config/mailtip:/etc/mailtip
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    environment:
+      MP_SMTP_AUTH_FILE: /etc/mailtip/password
+      MP_SMTP_TLS_CERT: /etc/mailtip/cert.pem
+      MP_SMTP_TLS_KEY: /etc/mailtip/key.pem
+      MP_MAX_MESSAGES: 5000
+      MP_DATABASE: /data/mailtip/mailpit.db
+      MP_SMTP_AUTH_ALLOW_INSECURE: true
+
+volumes:
+  mailtip-data:

@@ -11,3 +11,6 @@ wheels/
 .idea
 
 .config/config.toml
+
+docker/data
+.config/mailtip
