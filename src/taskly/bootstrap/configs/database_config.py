@@ -14,9 +14,10 @@ class LocalDBConnectionConfig:
         user = self.postgres_username
         password = self.postgres_password
         host = self.postgres_host
+        port = self.postgres_port
         db_name = self.postgres_database
 
-        return f"postgresql+asyncpg://{user}:{password}@{host}/{db_name}"
+        return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}"
 
 
 @dataclass(frozen=True, slots=True)
