@@ -1,0 +1,3 @@
+user admin on #f6ee94ecb014f74f887b9dcc52daecf73ab3e3333320cadd98bcb59d895c52f5 +@all -flushall -flushdb -swapdb
+user taskly on #f6ee94ecb014f74f887b9dcc52daecf73ab3e3333320cadd98bcb59d895c52f5 ~email:* +@all -@dangerous
+user hello nopass +@connection
