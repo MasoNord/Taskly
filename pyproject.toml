@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "aioredis",
     "aiosmtplib>=5.1.2",
     "alembic>=1.18.5",
     "asyncpg>=0.31.0",

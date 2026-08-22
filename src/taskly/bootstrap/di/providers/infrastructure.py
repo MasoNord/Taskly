@@ -1,4 +1,4 @@
-from typing import AsyncIterator
+from typing import AsyncIterator, cast
 
 import redis
 import structlog
@@ -11,7 +11,6 @@ from taskly.bootstrap.configs.database_config import LocalDBConnectionConfig, En
 from taskly.bootstrap.configs.email_config import EmailTemplateRendererConfig
 from taskly.bootstrap.configs.redis_config import RedisConfig
 import redis.asyncio as aioredis
-
 from taskly.infrastructure.auth.handlers.sign_up_via_email import GetEmailVerificationCodeUrl
 from taskly.infrastructure.email.gateway.email_sender_smtp import SmtpEmailSenderGateway
 from taskly.infrastructure.email.template_renderer import TemplateRenderer
@@ -85,7 +84,7 @@ class LocalRedisProvider(Provider):
         logger.debug("Local async redis pool is closed!")
 
     @provide(scope=Scope.REQUEST)
-    async def provide_async_redis_connection(self, local_redis_pool: aioredis.ConnectionPool) -> AsyncIterator[aioredis.Connection]:
+    async def provide_async_redis_connection(self, local_redis_pool: aioredis.ConnectionPool) -> AsyncIterator[aioredis.Redis]:
         logger.debug("Starting Local redis connection...")
         redis_client = aioredis.Redis(connection_pool=local_redis_pool)
 
@@ -125,6 +124,7 @@ class AuthHandlersProvider(Provider):
 
 def infrastructure_providers() -> tuple[Provider, ...]:
     return (
+        LocalRedisProvider(),
         LocalDatabaseProvider(),
         AuthProvider(),
         AuthHandlersProvider(),

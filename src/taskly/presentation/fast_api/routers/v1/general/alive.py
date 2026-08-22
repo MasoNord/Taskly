@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+import redis.asyncio as aioredis
 
 logger = structlog.get_logger(__name__)
 
@@ -37,4 +38,24 @@ def create_ready_router() -> APIRouter:
         return JSONResponse(status_code=200, content={})
 
     return router
+
+def create_ready_redis_router() -> APIRouter:
+
+    router = APIRouter()
+
+    @router.get("/internal/redis/ready")
+    @inject
+    async def ready(
+        session: FromDishka[aioredis.Redis]
+    ) -> JSONResponse:
+        try:
+            response = await session.ping()
+        except Exception as e:
+            await logger.awarning("Redis is not ready", exec_info=e)
+            return JSONResponse(status_code=503, content={})
+
+        return JSONResponse(status_code=200, content={"message": response})
+
+    return router
+
 
