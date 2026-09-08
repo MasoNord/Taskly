@@ -6,7 +6,9 @@ from taskly.application.common.gateway.email_sender import EmailSenderGateway, E
 from taskly.application.common.gateway.email_verification_code_storage import EmailVerificationCodeStorage, EmailVerificationCodeRequest
 from taskly.application.common.service.email_verification_code_generator import EmailVerificationCodeGenerator
 from taskly.application.common.service.email_verification_code_url_generator import EmailVerificationCodeUrlGenerator
-from taskly_common.hasher import sign
+from taskly.application.exceptions.email_verification_code_storage import EmailVerificationCodeNotFound, \
+    EmailVerificationCodeDoesntMatch
+from taskly_common.hasher import sign, verify
 from taskly_common.interactors import interactor
 
 logger: Logger = structlog.get_logger(__name__)
@@ -51,3 +53,26 @@ class GetEmailVerificationCodeUrl:
         logger.info("End generating verification code url")
 
         return url
+
+@interactor
+class VerifyEmailVerificationCode:
+
+    _email_verification_code_storage: EmailVerificationCodeStorage
+    _email_verification_code_generator: EmailVerificationCodeGenerator
+
+    async def execute(self, email: str, verification_code: str) -> str:
+        logger.info("Start verifying email verification code")
+
+        email_request = await self._email_verification_code_storage.get_by_email(email)
+
+        if not email_request:
+            logger.info("Email verification code not found for email: %s", email)
+            raise EmailVerificationCodeNotFound
+
+        if not verify(verification_code.encode('utf-8'), email_request.hashed_code):
+            raise EmailVerificationCodeDoesntMatch
+
+        return "Success"
+
+
+

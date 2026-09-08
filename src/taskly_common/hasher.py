@@ -12,6 +12,6 @@ def sign(value: bytes) -> bytes:
     h.update(value)
     return h.hexdigest().encode('utf-8')
 
-def verify(cookie: bytes, sig: bytes) -> bool:
-    good_sig = sign(cookie)
+def verify(value: bytes, sig: bytes) -> bool:
+    good_sig = sign(value)
     return compare_digest(good_sig, sig)

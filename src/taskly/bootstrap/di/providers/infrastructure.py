@@ -11,7 +11,8 @@ from taskly.bootstrap.configs.database_config import LocalDBConnectionConfig, En
 from taskly.bootstrap.configs.email_config import EmailTemplateRendererConfig
 from taskly.bootstrap.configs.redis_config import RedisConfig
 import redis.asyncio as aioredis
-from taskly.infrastructure.auth.handlers.sign_up_via_email import GetEmailVerificationCodeUrl
+from taskly.infrastructure.auth.handlers.sign_up_via_email import GetEmailVerificationCodeUrl, \
+    VerifyEmailVerificationCode
 from taskly.infrastructure.email.gateway.email_sender_smtp import SmtpEmailSenderGateway
 from taskly.infrastructure.email.template_renderer import TemplateRenderer
 from taskly.infrastructure.exceptions.redis import RedisConnectionError
@@ -118,7 +119,8 @@ class AuthHandlersProvider(Provider):
     scope = Scope.REQUEST
 
     handlers = provide_all(
-        GetEmailVerificationCodeUrl
+        GetEmailVerificationCodeUrl,
+        VerifyEmailVerificationCode
     )
 
 
