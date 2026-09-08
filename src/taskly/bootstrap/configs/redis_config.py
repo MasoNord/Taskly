@@ -15,3 +15,8 @@ class RedisConfig:
     @property
     def redis_conn_url(self) -> str:
         return f"redis://{self.acl_username}:{self.acl_password}@{self.host}:{self.port}"
+
+@dataclass(frozen=True, slots=True)
+class RedisExpirationConfig:
+
+    email_verification_code_ex: int

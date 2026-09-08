@@ -24,16 +24,13 @@ class GetEmailVerificationCodeUrl:
 
         code = await self._email_verification_code_generator.generate_verification_code()
 
-
-        (url, url_code) = await self._email_verification_code_url_generator.generate()
+        url = await self._email_verification_code_url_generator.generate(email)
 
         logger.debug("Verification code url: %s", url)
-        logger.debug("Verification code temp url code: %s", url_code)
 
         email_verification_code_request = EmailVerificationCodeRequest(
             email=email,
             hashed_code=sign(code.encode("utf-8")),
-            url_code=url_code
         )
 
         # TODO: add sending notification to the user by the given email via event bus
@@ -42,16 +39,14 @@ class GetEmailVerificationCodeUrl:
             context = {"verification_code": code}
         )
 
+        await self._email_verification_code_storage.add(email_verification_code_request)
+
         await self._email_sender_gateway.send(
             email,
             email_request.subject,
             email_request.template_name,
             dict(email_request.context)
         )
-
-        logger.info("SENDING USE'S VERIFICATION CODE TO THE CONSOLE: %s", code)
-
-        await self._email_verification_code_storage.add(email_verification_code_request)
 
         logger.info("End generating verification code url")
 

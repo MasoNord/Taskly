@@ -7,7 +7,7 @@ import toml_rs
 
 from taskly.bootstrap.configs.database_config import EngineSettings, LocalDBConnectionConfig
 from taskly.bootstrap.configs.email_config import EmailConnectionConfig, EmailTemplateRendererConfig
-from taskly.bootstrap.configs.redis_config import RedisConfig
+from taskly.bootstrap.configs.redis_config import RedisConfig, RedisExpirationConfig
 from taskly.bootstrap.configs.server_config import ServerConfig, ApiConfig, CorsConfig
 from taskly_common.observability.config import OTelConfig
 
@@ -21,6 +21,7 @@ class Config:
     cors: CorsConfig
     otel: OTelConfig
     redis_config: RedisConfig
+    redis_expiration_config: RedisExpirationConfig
     engine_settings: EngineSettings
     postgres: LocalDBConnectionConfig
     email_connection: EmailConnectionConfig
@@ -47,4 +48,5 @@ class Config:
             redis_config=RedisConfig(**data["redis_config"]),
             email_connection=EmailConnectionConfig(**data["email_connection"]),
             email_template_render=EmailTemplateRendererConfig(**data["email_template_render"]),
+            redis_expiration_config=RedisExpirationConfig(**data["redis_expiration_config"])
         )

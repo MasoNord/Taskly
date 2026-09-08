@@ -6,7 +6,6 @@ from typing import Protocol
 class EmailVerificationCodeRequest:
     email: str
     hashed_code: bytes
-    url_code: str | None
 
 class EmailVerificationCodeStorage(Protocol):
 
