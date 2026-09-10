@@ -1,25 +1,30 @@
 from dishka import AsyncContainer, make_async_container, STRICT_VALIDATION
 
 from taskly.bootstrap.config_loader import Config
+from taskly.bootstrap.configs.auth_config import CookiesConfig, AuthConfig
 from taskly.bootstrap.configs.database_config import LocalDBConnectionConfig, EngineSettings
 from taskly.bootstrap.configs.email_config import EmailConnectionConfig, EmailTemplateRendererConfig
 from taskly.bootstrap.configs.redis_config import RedisConfig, RedisExpirationConfig
 from taskly.bootstrap.configs.server_config import ServerConfig, ApiConfig
 from taskly.bootstrap.di.providers.application import application_providers
 from taskly.bootstrap.di.providers.infrastructure import infrastructure_providers
+from taskly.bootstrap.di.providers.presentation import presentation_providers
 
 
 def get_async_container(config: Config) -> AsyncContainer:
 
     providers = [
         *infrastructure_providers(),
-        *application_providers()
+        *application_providers(),
+        *presentation_providers()
     ]
 
     context = {
         Config: config,
         ServerConfig: config.server,
         ApiConfig: config.api,
+        CookiesConfig: config.cookie_config,
+        AuthConfig: config.auth_config,
         RedisConfig: config.redis_config,
         LocalDBConnectionConfig: config.postgres,
         EngineSettings: config.engine_settings,

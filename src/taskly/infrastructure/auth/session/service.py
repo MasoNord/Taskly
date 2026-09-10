@@ -39,7 +39,7 @@ class AuthSessionService:
         self._auth_session_timer = auth_session_timer
         self._auth_session_id_generator = auth_session_id_generator
 
-    async def issue_session(self, user_id: UUID, user_agent: str, ip: str) -> None:
+    async def issue_session(self, user_id: UUID, user_agent: str | None, ip: str | None) -> None:
         """:raises AuthenticationError:"""
         logger.debug("Issue auth session: started. User ID: '%s'.", user_id)
         logger.debug("User-Agent: %s", user_agent)
@@ -159,7 +159,6 @@ class AuthSessionService:
             )
             return auth_session
 
-        original_expiration = auth_session.expiration
         auth_session.expiration = self._auth_session_timer.auth_session_expiration
 
         await self._auth_session_gateway.update(auth_session)

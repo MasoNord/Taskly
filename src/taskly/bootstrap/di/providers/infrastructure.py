@@ -1,3 +1,4 @@
+import datetime
 from typing import AsyncIterator, cast
 
 import redis
@@ -7,12 +8,21 @@ from jinja2 import Environment, FileSystemLoader
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, AsyncSession, create_async_engine
 
 from taskly.application.common.gateway.email_sender import EmailSenderGateway
+from taskly.bootstrap.configs.auth_config import AuthConfig
 from taskly.bootstrap.configs.database_config import LocalDBConnectionConfig, EngineSettings
 from taskly.bootstrap.configs.email_config import EmailTemplateRendererConfig
 from taskly.bootstrap.configs.redis_config import RedisConfig
 import redis.asyncio as aioredis
+
+from taskly.infrastructure.auth.adapters.auth_session_sa import SAAuthSessionGateway
+from taskly.infrastructure.auth.adapters.session_transport_cookies import CookieAuthSessionTransport
 from taskly.infrastructure.auth.handlers.sign_up_via_email import GetEmailVerificationCodeUrl, \
     VerifyEmailVerificationCode
+from taskly.infrastructure.auth.session.gateway.auth_session import AuthSessionGateway
+from taskly.infrastructure.auth.session.gateway.transport import AuthSessionTransport
+from taskly.infrastructure.auth.session.id_generator_str import StrAuthSessionIdGenerator
+from taskly.infrastructure.auth.session.service import AuthSessionService
+from taskly.infrastructure.auth.session.timer_utc import UtcAuthSessionTimer
 from taskly.infrastructure.email.gateway.email_sender_smtp import SmtpEmailSenderGateway
 from taskly.infrastructure.email.template_renderer import TemplateRenderer
 from taskly.infrastructure.exceptions.redis import RedisConnectionError
@@ -118,10 +128,27 @@ class AuthProvider(Provider):
 class AuthHandlersProvider(Provider):
     scope = Scope.REQUEST
 
+    services = provide_all(
+        AuthSessionService,
+        StrAuthSessionIdGenerator
+    )
+
+    session_transport = provide(CookieAuthSessionTransport, provides=AuthSessionTransport)
+
+    gateways = provide(SAAuthSessionGateway, provides=AuthSessionGateway)
+
     handlers = provide_all(
         GetEmailVerificationCodeUrl,
         VerifyEmailVerificationCode
     )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_auth_session_timer(self, auth_config: AuthConfig) -> UtcAuthSessionTimer:
+        return UtcAuthSessionTimer(
+            ttl_min=datetime.timedelta(minutes=auth_config.session_ttl_min),
+            refresh_threshold=auth_config.session_refresh_threshold,
+        )
+
 
 
 def infrastructure_providers() -> tuple[Provider, ...]:

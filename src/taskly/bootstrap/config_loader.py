@@ -5,6 +5,7 @@ from typing import Self, Any
 
 import toml_rs
 
+from taskly.bootstrap.configs.auth_config import AuthConfig, CookiesConfig
 from taskly.bootstrap.configs.database_config import EngineSettings, LocalDBConnectionConfig
 from taskly.bootstrap.configs.email_config import EmailConnectionConfig, EmailTemplateRendererConfig
 from taskly.bootstrap.configs.redis_config import RedisConfig, RedisExpirationConfig
@@ -26,6 +27,8 @@ class Config:
     postgres: LocalDBConnectionConfig
     email_connection: EmailConnectionConfig
     email_template_render: EmailTemplateRendererConfig
+    auth_config: AuthConfig
+    cookie_config: CookiesConfig
 
     @classmethod
     def load(cls) -> Self:
@@ -48,5 +51,7 @@ class Config:
             redis_config=RedisConfig(**data["redis_config"]),
             email_connection=EmailConnectionConfig(**data["email_connection"]),
             email_template_render=EmailTemplateRendererConfig(**data["email_template_render"]),
-            redis_expiration_config=RedisExpirationConfig(**data["redis_expiration_config"])
+            redis_expiration_config=RedisExpirationConfig(**data["redis_expiration_config"]),
+            auth_config=AuthConfig(**data["auth_config"]),
+            cookie_config=CookiesConfig(**data["cookie_config"]),
         )

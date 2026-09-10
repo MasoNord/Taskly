@@ -2,12 +2,14 @@ from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Query
 from pydantic import BaseModel, EmailStr
+from starlette.requests import Request
 from starlette.responses import RedirectResponse
 
 from starlette.status import HTTP_307_TEMPORARY_REDIRECT, HTTP_200_OK
 
 from taskly.infrastructure.auth.handlers.sign_up_via_email import GetEmailVerificationCodeUrl, \
-    VerifyEmailVerificationCode
+    VerifyEmailVerificationCode, VerifyEmailVerificationCodeRequest
+from taskly.presentation.fast_api.helpers import get_client_ip
 
 
 class VerifyVerificationCodeRequestPydantic(BaseModel):
@@ -48,9 +50,18 @@ def create_get_verify_email_code_router() -> APIRouter:
     )
     @inject
     async def verify_verification_code(
+        request: Request,
         interactor: FromDishka[VerifyEmailVerificationCode],
         payload: VerifyVerificationCodeRequestPydantic
     ):
-        return await interactor.execute(payload.email, payload.verification_code)
+
+        request = VerifyEmailVerificationCodeRequest(
+            user_agent=request.headers.get('User-Agent'),
+            ip_address=get_client_ip(request),
+            email=payload.email,
+            verification_code=payload.verification_code
+        )
+
+        return await interactor.execute(request)
 
     return router

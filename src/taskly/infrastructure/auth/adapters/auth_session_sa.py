@@ -18,7 +18,7 @@ class SAAuthSessionGateway(AuthSessionGateway):
 
 
     async def get_by_id(self, auth_session_id: str) -> AuthSession | None:
-        stmt = select(AuthSession).where(AuthSession.id_ == auth_session_id) # type: ignore
+        stmt = select(AuthSession).where(AuthSession.id == auth_session_id) # type: ignore
 
         record = await self._session.execute(stmt)
 

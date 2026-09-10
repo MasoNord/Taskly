@@ -1,12 +1,9 @@
 from collections.abc import Sequence
 from typing import Any
 
-import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from taskly.application.common.gateway.uow import UoW
-
-logger = structlog.get_logger(__name__)
 
 class BaseSQLAlchemyUoW(UoW):
 
