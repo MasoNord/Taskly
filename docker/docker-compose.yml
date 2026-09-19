@@ -9,6 +9,58 @@ services:
       - "4317:4317" # OTLP gRPC receiver
       - "4318:4318" # OTLP http receiver
       - "55679:55679" # zpages extension
+  loki:
+    image: grafana/loki:latest
+    container_name: grafana-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ../.config/loki/loki-config.yaml:/etc/loki/config.yaml
+    command: -config.file=/etc/loki/config.yaml
+    networks:
+      - loki
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_FEATURE_TOGGLES_ENABLE=grafanaManagedRecordingRules
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+    ports:
+      - "3000:3000"
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy
+          orgId: 1
+          url: 'http://loki:3100'
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: true 
+        EOF
+        /run.sh
+    networks:
+      - loki
+  alloy:
+    image: grafana/alloy:latest
+    container_name: grafana-alloy
+    ports:
+      - "12345:12345"
+    volumes:
+      - ../.config/loki/config.alloy:/etc/alloy/config.alloy
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    depends_on:
+      - loki
+    networks:
+      - loki
   mailpit:
     image: axllent/mailpit
     container_name: mailpit
@@ -81,3 +133,6 @@ volumes:
   pg_data:
   redis_data:
   redisinsight:
+
+networks:
+  loki:
